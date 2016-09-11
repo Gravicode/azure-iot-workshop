@@ -8,44 +8,15 @@ using Newtonsoft.Json;
 
 namespace device_simulator
 {
-    public class Parameters
-    {
-        public string LED { get; set; }
-        public string MSG_CONTROL { get; set; }
-    }
-
- 
-    public class Command
-    {
-        public string Name { get; set; }
-        public string MessageId { get; set; }
-        public string CreatedTime { get; set; }
-        public string UpdatedTime { get; set; }
-        public object Result { get; set; }
-        public object ErrorMessage { get; set; }
-        public Parameters Parameters { get; set; }
-    }
     class Program
     {
-        private static string deviceId;
-        private static string hostName;
-
-        private static DeviceClient deviceClient;
-        private static readonly Random random = new Random();
-        private static bool isConnected = false;
-        private static bool isListening = false; 
-        private static bool isRemoteMonitoringDevice;
-        private static int messageCount = 0;
-        private static string deviceConnectionString;
         private static void Main(string[] args)
         {
-            // do not want to hard code connection string here when it is going to public github.
-            // check if cli argument exists.  if yes then arg[0] is assigned to device connection string, otherwise user gets prompted to enter the string. 
-            PrepareDeviceConnectionString(args.Length == 0 ? null : args[0]);
             int userInput;
-
+            PrepareDeviceConnectionString(args.Length == 0 ? null : args[0]);
+            
             do
-            { 
+            {
                 userInput = UserPrompt();
 
                 switch (userInput)
@@ -97,12 +68,10 @@ namespace device_simulator
             Console.WriteLine("4. Start listening for commands: ");
             Console.WriteLine("5. Disconnect from IoT hub: ");
             Console.WriteLine("6. Reset device connection string: ");
-
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine($"Connection Status: {connectionStatus}");
             Console.WriteLine($"Listening Status: {listeningStatus}");
             Console.ResetColor();
-
             Console.WriteLine("------------------------------");
             Console.Write("Enter your choice ('0' to exit the program): ");
             var input = Console.ReadLine();
@@ -142,11 +111,10 @@ namespace device_simulator
         }
 
         /// <summary>
-                /// simulates sensor readings.  if this is for Remote Monitoring and message count is 0 then the device meta data is sent to the hub.
-                /// </summary>
-                /// <returns></returns>
-            public static
-            string Read()
+        /// simulates sensor readings.  if this is for Remote Monitoring and message count is 0 then the device meta data is sent to the hub.
+        /// </summary>
+        /// <returns></returns>
+        public static string Read()
         {
             var metadata = new {
                 IsSimulatedDevice = false,
@@ -169,9 +137,9 @@ namespace device_simulator
                     Longitude = -122.141515
                 },
                 Commands = new[] {
-                    new  { 
+                    new {
                         Name = "ControlTelemetry",
-                        Parameters = new [] {
+                        Parameters = new[] {
                             new {
                                 Name = "LED",
                                 Type = "string"
@@ -188,14 +156,14 @@ namespace device_simulator
             var sensordata = new {
                 DeviceID = deviceId,
                 TimeStamp = DateTime.Now.ToString(CultureInfo.CurrentCulture),
-                Temperature = 18.0 * random.NextDouble() + 25.0,
-                Humidity = 55.0 * random.NextDouble() + 80.0,
-                WindSpeed = 20 * random.NextDouble() + 35.0,
-                Pressure = 95 * random.NextDouble() + 125.0,
+                Temperature = 18.0*random.NextDouble() + 25.0,
+                Humidity = 55.0*random.NextDouble() + 80.0,
+                WindSpeed = 20*random.NextDouble() + 35.0,
+                Pressure = 95*random.NextDouble() + 125.0,
                 Latitude = 47.659159,
                 Longitude = -122.141515
             };
-            var telemetry = (messageCount < 1 && isRemoteMonitoringDevice) ?  JsonConvert.SerializeObject(metadata) : JsonConvert.SerializeObject(sensordata);
+            var telemetry = (messageCount < 1 && isRemoteMonitoringDevice) ? JsonConvert.SerializeObject(metadata) : JsonConvert.SerializeObject(sensordata);
             return telemetry;
         }
 
@@ -358,8 +326,33 @@ namespace device_simulator
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"The device {deviceId} is not connected to IoT hub.  Connect before receiving messsage(s).");
                 Console.ResetColor();
-
             }
+        }
+
+        private static string deviceId;
+        private static string hostName;
+        private static DeviceClient deviceClient;
+        private static readonly Random random = new Random();
+        private static bool isConnected = false;
+        private static bool isListening = false;
+        private static bool isRemoteMonitoringDevice;
+        private static int messageCount = 0;
+        private static string deviceConnectionString;
+
+        private class Parameters
+        {
+            public string LED { get; set; }
+            public string MSG_CONTROL { get; set; }
+        }
+        private class Command
+        {
+            public string Name { get; set; }
+            public string MessageId { get; set; }
+            public string CreatedTime { get; set; }
+            public string UpdatedTime { get; set; }
+            public object Result { get; set; }
+            public object ErrorMessage { get; set; }
+            public Parameters Parameters { get; set; }
         }
     }
 }
