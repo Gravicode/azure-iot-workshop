@@ -40,7 +40,6 @@ namespace device_service_client
 
             do
             {
-
                 Console.Write("Enter message to be sent (\"quit\") to stop: ");
                 message = Console.ReadLine();
                 SendCloudToDeviceMessageAsync(deviceId, message).Wait();
@@ -52,15 +51,15 @@ namespace device_service_client
         private static string GetAndValidateConnectionString(string cliargument)
         {
             // TODO: input validation for iot hub connection string format to be added...
-            string userInput;
+            string enteredConnectionString;
             do
             {
                 Console.Write("Enter a connection string to Azure IoT Hub: ");
-                userInput = cliargument ?? Console.ReadLine();
-                Console.WriteLine($"Connection string: {userInput}");
+                enteredConnectionString = cliargument ?? Console.ReadLine();
+                Console.WriteLine($"Connection string: {enteredConnectionString}");
 
-            } while (userInput == null); 
-            return userInput;
+            } while (enteredConnectionString == null); 
+            return enteredConnectionString;
         }
 
         public static async Task OpenConnectionAsync()
@@ -110,7 +109,9 @@ namespace device_service_client
             if (isConnected)
             {
                 var command = new Message(Encoding.ASCII.GetBytes(message));
+                command.Ack = DeliveryAcknowledgement.Full;
                 await serviceClient.SendAsync(deviceId, command);
+                
             }
             else
             {
@@ -123,7 +124,6 @@ namespace device_service_client
         private static async Task ReceiveFeedbackAsync()
         {
             var feedbackReceiver = serviceClient.GetFeedbackReceiver();
-
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\nReceiving C2D feedback from service...");
             Console.ResetColor();
@@ -134,7 +134,7 @@ namespace device_service_client
                 if (feedbackBatch == null) continue;
 
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"Received feedback: {string.Join(", ", feedbackBatch.Records.Select(f => f.StatusCode))}");
+                Console.WriteLine($"\nReceived feedback: {string.Join(", ", feedbackBatch.Records.Select(f => f.StatusCode))}\n");
                 Console.ResetColor();
 
                 await feedbackReceiver.CompleteAsync(feedbackBatch);

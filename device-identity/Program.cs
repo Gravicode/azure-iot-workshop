@@ -41,25 +41,17 @@ namespace device_identity
                 userInput = UserPrompt();
                 switch (userInput)
                 {
-                    case 1:
-                        ListDevices().Wait();
-                        break;
-                    case 2:
-                        GetDeviceInformation().Wait();
-                        break;
-                    case 3:
-                        AddDevice().Wait();
-                        break;
-                    case 4:
-                        RemoveDevice().Wait();
-                        break;
-                    default:
-                        break;
+                    case 1: ListDevices().Wait(); break;
+                    case 2: GetDeviceInformation().Wait(); break;
+                    case 3: AddDevice().Wait(); break;
+                    case 4: RemoveDevice().Wait(); break;
+                    default: break;
                 }
             } while (userInput != 0);
 
             // close the connection if opened.
             if (!isConnected) return;
+
             try
             {
                 registryManager.CloseAsync().Wait();
@@ -88,14 +80,9 @@ namespace device_identity
             return int.TryParse(input, out result) ? result : -100;
         }
 
-        /// <summary>
-        /// Open a connection to Azure IoT Hub.  
-        /// </summary>
-        /// <returns></returns>
         public static async Task OpenConnection()
         {
-            if (isConnected == true) Console.WriteLine("Connection has been established already.");
-            else
+            if (isConnected == false)
             {
                 try
                 {
@@ -108,6 +95,7 @@ namespace device_identity
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"An error occurred while opening connection to Azure IoT Hub (message: {ex.Message}).");
                     Console.ResetColor();
+                    isConnected = false;
                 }
             }
         }
@@ -200,7 +188,6 @@ namespace device_identity
                     Console.ResetColor();
                 }
             }
-
         }
 
         public static async Task GetDeviceInformation()
@@ -229,13 +216,10 @@ namespace device_identity
                 catch (Exception ex)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("An error occurred while retrieving device information from the IoT hub registry.  Make sure that the device exists in the registry.");
+                    Console.WriteLine($"An error occurred while retrieving device information from the IoT hub registry.  Make sure that the device exists in the registry (message: {ex.Message}).");
                     Console.ResetColor();
-
                 }
-
             }
-            else {}
         }
     }
 }

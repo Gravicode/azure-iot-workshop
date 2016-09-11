@@ -8,13 +8,13 @@ using Newtonsoft.Json;
 
 namespace device_simulator
 {
-    class Program
+    public class Program
     {
         private static void Main(string[] args)
         {
             int userInput;
-            PrepareDeviceConnectionString(args.Length == 0 ? null : args[0]);
-            
+            var connectionString = GetAndValidateConnectionString(args.Length == 0 ? null : args[0]);
+
             do
             {
                 userInput = UserPrompt();
@@ -22,10 +22,9 @@ namespace device_simulator
                 switch (userInput)
                 {
                     // opens a device connection to iot hub.
-                    case 1: Open().Wait(); break;
-
+                    case 1: OpenConnectionAsync(connectionString).Wait(); break;
                     // sends a telemetry once to the iot hub.  if it is a device for Remote Monitoring then it once sends deviceInfo to enable the device.
-                    case 2: Send().Wait(); break;
+                    case 2: SendTelemetryAsync().Wait(); break;
                     // sends given number of telemetries at given interval.  lazy coding here - make sure you check if inputs are integer.
                     case 3: 
                         Console.Write("Please enter number of telemetries to be send: ");
@@ -36,16 +35,16 @@ namespace device_simulator
 
                         for (var i = 0; i < number; i++)
                         {
-                            Send().Wait();
+                            SendTelemetryAsync().Wait();
                             Thread.Sleep(interval*1000);
                         }
                         break;
                     // sets to receiving mode (could use Task.Run instead)  
-                    case 4: Receive().Wait(); break;
+                    case 4: ReceiveCommandMessagesAsync().Wait(); break;
                     // closes and disposes the opened connection / deviceClient 
-                    case 5: Close().Wait(); break;
+                    case 5: CloseConnectionAsync().Wait(); break;
                     // prompts to re-enter device connection string
-                    case 6: PrepareDeviceConnectionString(null); break;
+                    case 6: GetAndValidateConnectionString(null); break;
                     // invalid entry (other than integer) detected
                     case -100: Console.WriteLine("Invalid option..."); break;
                     default: break;
@@ -79,21 +78,22 @@ namespace device_simulator
             return int.TryParse(input, out result) ? result : -100;
         }
 
-        private static void PrepareDeviceConnectionString(string argument)
+        private static string GetAndValidateConnectionString(string cli_argument)
         {
+            //TODO: proper input validation check on connection string format to be done...
             Console.Write("Enter a connection string for this device: ");
-            deviceConnectionString = argument ?? Console.ReadLine();
-            Console.WriteLine($"Connection string: {deviceConnectionString}");
+            var enteredConnectionString = cli_argument ?? Console.ReadLine();
+            Console.WriteLine($"Connection string: {enteredConnectionString}");
 
             Console.Write("Is this RM device ('y' or 'n')? ");
-            var input = Console.ReadLine();
-            if (input != null) isRemoteMonitoringDevice = (input.ToUpper() == "Y");
+            var enteredChoiceForRMDevice = Console.ReadLine();
+
+            if (enteredChoiceForRMDevice != null) isRemoteMonitoringDevice = (enteredChoiceForRMDevice.ToUpper() == "Y");
             else isRemoteMonitoringDevice = false;
 
             try
             {
-                
-                var properties = deviceConnectionString?.Split(';');
+                var properties = enteredConnectionString?.Split(';');
                 hostName = properties?[0].Split('=')[1];
                 deviceId = properties?[1].Split('=')[1];
 
@@ -108,14 +108,13 @@ namespace device_simulator
                 Console.WriteLine("An error occurred while preparing a device connection string...");
                 Console.ResetColor();
             }
+            return enteredConnectionString;
         }
 
-        /// <summary>
-        /// simulates sensor readings.  if this is for Remote Monitoring and message count is 0 then the device meta data is sent to the hub.
-        /// </summary>
-        /// <returns></returns>
-        public static string Read()
+        public static string ReadPseudoSensorData()
         {
+            // this is only needed for RM device.  it is a meta data which is required by rm template for its device to be enabled.
+            #region METADATA for RM Device
             var metadata = new {
                 IsSimulatedDevice = false,
                 Version = "1.0",
@@ -152,7 +151,8 @@ namespace device_simulator
                     }
                 }
             };
-
+            #endregion
+            // pseudo sensor data
             var sensordata = new {
                 DeviceID = deviceId,
                 TimeStamp = DateTime.Now.ToString(CultureInfo.CurrentCulture),
@@ -163,17 +163,19 @@ namespace device_simulator
                 Latitude = 47.659159,
                 Longitude = -122.141515
             };
+
+            // if RM device and first time sending telmetry then send meta data to enable the device. 
             var telemetry = (messageCount < 1 && isRemoteMonitoringDevice) ? JsonConvert.SerializeObject(metadata) : JsonConvert.SerializeObject(sensordata);
             return telemetry;
         }
 
-        public static async Task Open()
+        public static async Task OpenConnectionAsync(string connectionString)
         {
             if (isConnected == false)
             {
                 try
                 {
-                    deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString);
+                    deviceClient = DeviceClient.CreateFromConnectionString(connectionString);
                     await deviceClient.OpenAsync();
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine($"{deviceId} is connected to Iot hub: {hostName}.");
@@ -197,7 +199,7 @@ namespace device_simulator
             }
         }
 
-        public static async Task Close()
+        public static async Task CloseConnectionAsync()
         {
             if (isConnected)
             {
@@ -224,11 +226,11 @@ namespace device_simulator
             }
         }
 
-        public static async Task Send()
+        public static async Task SendTelemetryAsync()
         {
             try
             {
-                var sensordata = Read();
+                var sensordata = ReadPseudoSensorData();
                 var message = new Message(Encoding.UTF8.GetBytes(sensordata));
                 await deviceClient.SendEventAsync(message);
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -244,7 +246,7 @@ namespace device_simulator
             }
         }
 
-        public static async Task Receive()
+        public static async Task ReceiveCommandMessagesAsync()
         {
             if (isConnected)
             {
@@ -337,7 +339,7 @@ namespace device_simulator
         private static bool isListening = false;
         private static bool isRemoteMonitoringDevice;
         private static int messageCount = 0;
-        private static string deviceConnectionString;
+        //  private static string deviceConnectionString;
 
         private class Parameters
         {
