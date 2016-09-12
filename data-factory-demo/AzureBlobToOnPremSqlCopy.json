@@ -1,0 +1,55 @@
+﻿{
+    "name": "AzureBlobToOnPremSqlCopy",
+    "properties": {
+        "description": "Copies telemetry data from blob to on-prem SQL",
+        "activities": [
+            {
+                "type": "Copy",
+                "typeProperties": {
+                    "source": {
+                        "type": "BlobSource",
+                        "recursive": true
+                    },
+                    "sink": {
+                        "type": "SqlSink",
+                        "writeBatchSize": 0,
+                        "writeBatchTimeout": "00:00:00"
+                    },
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "columnMappings": "deviceid:DeviceID,timestamp:TimeStamp,temperature:Temperature,humidity:Humidity,windspeed:WindSpeed,pressure:Pressure,latitude:Latitude,longitude:Longitude,eventprocessedutctime:EventProcessedUtcTime,eventenqueuedutctime:EventEnqueuedUtcTime"
+                    }
+                },
+                "inputs": [
+                  {
+                    "name": "AzureBlobDataset"
+                  }
+                ],
+                "outputs": [
+                    {
+                        "name": "SqlServerDataset"
+                    }
+                ],
+                "policy": {
+                    "timeout": "02:00:00",
+                    "concurrency": 1,
+                    "executionPriorityOrder": "NewestFirst",
+                    "style": "StartOfInterval",
+                    "retry": 3,
+                    "longRetry": 0,
+                    "longRetryInterval": "00:00:00"
+                },
+                "scheduler": {
+                    "frequency": "Minute",
+                    "interval": 15
+                },
+                "name": "azureblob-to-onpremsql"
+            }
+        ],
+        "start": "2016-09-10T02:37:00Z",
+        "end": "2099-12-30T17:00:00Z",
+        "isPaused": false,
+        "hubName": "azure-iot-workshop-adf_hub",
+        "pipelineMode": "Scheduled"
+    }
+}

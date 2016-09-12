@@ -1,0 +1,10 @@
+﻿{
+  "name": "AzureBlobLinkedService",
+  "properties": {
+    "hubName": "azure-iot-workshop-adf_hub",
+    "type": "AzureStorage",
+    "typeProperties": {
+      "connectionString": "DefaultEndpointsProtocol=https;AccountName=azureiotworkshopstorage;AccountKey=**********"
+    }
+  }
+}

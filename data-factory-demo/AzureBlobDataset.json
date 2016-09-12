@@ -1,0 +1,62 @@
+﻿{
+  "name": "AzureBlobDataset",
+  "properties": {
+    "structure": [
+      {
+        "name": "deviceid",
+        "type": "String"
+      },
+      {
+        "name": "timestamp",
+        "type": "String"
+      },
+      {
+        "name": "temperature",
+        "type": "Double"
+      },
+      {
+        "name": "humidity",
+        "type": "Double"
+      },
+      {
+        "name": "windspeed",
+        "type": "Double"
+      },
+      {
+        "name": "pressure",
+        "type": "Double"
+      },
+      {
+        "name": "latitude",
+        "type": "Double"
+      },
+      {
+        "name": "longitude",
+        "type": "Double"
+      },
+      {
+        "name": "eventprocessedutctime",
+        "type": "String"
+      },
+      {
+        "name": "eventenqueuedutctime",
+        "type": "String"
+      }
+    ],
+    "published": false,
+    "type": "AzureBlob",
+    "linkedServiceName": "AzureBlobLinkedService",
+    "typeProperties": {
+      "folderPath": "device-simulator-output/",
+      "format": {
+        "type": "JsonFormat"
+      }
+    },
+    "availability": {
+      "frequency": "Minute",
+      "interval": 15
+    },
+    "external": true,
+    "policy": {}
+  }
+}

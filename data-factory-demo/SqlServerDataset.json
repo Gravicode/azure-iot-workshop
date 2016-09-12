@@ -1,0 +1,59 @@
+﻿{
+    "name": "SqlServerDataset",
+  "properties": {
+    "structure": [
+      {
+        "name": "DeviceID",
+        "type": "String"
+      },
+      {
+        "name": "TimeStamp",
+        "type": "Datetime"
+      },
+      {
+        "name": "Temperature",
+        "type": "Double"
+      },
+      {
+        "name": "Humidity",
+        "type": "Double"
+      },
+      {
+        "name": "WindSpeed",
+        "type": "Double"
+      },
+      {
+        "name": "Pressure",
+        "type": "Double"
+      },
+      {
+        "name": "Latitude",
+        "type": "Double"
+      },
+      {
+        "name": "Longitude",
+        "type": "Double"
+      },
+      {
+        "name": "EventProcessedUtcTime",
+        "type": "Datetime"
+      },
+      {
+        "name": "EventEnqueuedUtcTime",
+        "type": "Datetime"
+      }
+    ],
+    "published": false,
+    "type": "SqlServerTable",
+    "linkedServiceName": "SqlServerLinkedService",
+    "typeProperties": {
+      "tableName": "simulator-data"
+    },
+    "availability": {
+      "frequency": "Minute",
+      "interval": 15
+    },
+    "external": false,
+    "policy": {}
+  }
+}

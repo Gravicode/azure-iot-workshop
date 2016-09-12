@@ -1,0 +1,13 @@
+﻿{
+  "name": "SqlServerLinkedService",
+  "properties": {
+    "hubName": "azure-iot-workshop-adf_hub",
+    "type": "OnPremisesSqlServer",
+    "typeProperties": {
+      "connectionString": "Data Source=vm-database-01;Initial Catalog=azure-iot-workshop-database;Integrated Security=False;User ID=pashim;Password=**********",
+      "gatewayName": "SqlServerGateway",
+      "userName": "null",
+      "password": "**********"
+    }
+  }
+}
